@@ -33,10 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			return new vscode.Hover({
-				language: hover.language,
-				value: value
-			});
+			const markdown = new vscode.MarkdownString(value, false);
+			return new vscode.Hover(markdown);
 		},
 	});
 }

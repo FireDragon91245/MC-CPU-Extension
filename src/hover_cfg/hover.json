@@ -8,8 +8,10 @@
             ],
             "value": [
                 "# add",
-                "> add %register, %register",
-                "> adds %2 to %1 (%1 = %1 + %2)"
+                "```mccpu",
+                "add %register, %register",
+                "   (%1 = %1 + %2)",
+                "```"
             ]
         },
         {
@@ -18,8 +20,10 @@
             ],
             "value": [
                 "# sub",
-                "> sub %register, %register",
-                "> subtracts %2 form %1 (%1 = %1 - %2)"
+                "```mccpu",
+                "sub %register, %register",
+                "   (%1 = %1 - %2)",
+                "```"
             ]
         }
     ]

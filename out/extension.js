@@ -49,10 +49,8 @@ function activate(context) {
             if (value === '') {
                 return;
             }
-            return new vscode.Hover({
-                language: hover_json_1.default.language,
-                value: value
-            });
+            const markdown = new vscode.MarkdownString(value, false);
+            return new vscode.Hover(markdown);
         },
     });
 }

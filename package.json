@@ -1,0 +1,67 @@
+{
+  "name": "mccpu-language",
+  "displayName": "MCCPU-Language",
+  "description": "Adds basic language support for .mccpu files (my own assembly like language for my minecraft cpu)",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.77.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [{
+      "id": "mccpu",
+      "aliases": ["MCCPU", "mccpu"],
+      "extensions": [".mccpu"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "mccpu",
+      "scopeName": "source.mccpu",
+      "path": "./syntaxes/mccpu.tmLanguage.json"
+    }],
+    "themes": [
+			{
+				"id": "MCCPU Dark+",
+				"label": "Dark+ (MCCPU)",
+				"uiTheme": "vs-dark",
+				"path": "./themes/dark_mccpu.json"
+			}
+    ],
+    "snippets": [
+      {
+        "language": "mccpu",
+        "path": "./snippets/snippets.code-snippets"
+      }
+    ],
+    "commands": [
+      {
+        "command": "test.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.77.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.56.0",
+    "@typescript-eslint/parser": "^5.56.0",
+    "eslint": "^8.36.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^4.9.5",
+    "@vscode/test-electron": "^2.3.0"
+  }
+}

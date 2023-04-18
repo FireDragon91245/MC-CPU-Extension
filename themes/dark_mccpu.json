@@ -1,0 +1,42 @@
+{
+	"$schema": "vscode://schemas/color-theme",
+	"name": "Dark+ (MCCPU)",
+    "tokenColors":[
+        {
+            "scope": [
+                "comment.line.italic"
+            ],
+            "settings": {
+                "foreground": "#6A9955",
+                "fontStyle": "italic"
+            }
+        },
+        {
+            "scope":[
+                "variable.parameter",
+                "keyword.control.less"
+            ],
+            "settings": {
+                "foreground": "#569cd6",
+            }
+        },
+        {
+            "scope":[
+                "constant.import"
+            ],
+            "settings": {
+                "foreground": "#569cd6",
+                "fontStyle": "italic underline"
+            }
+        },
+        {
+            "scope":[
+                "keyword.operator"
+            ],
+            "settings": {
+                "foreground": "#d38003",
+            }
+        }
+    ],
+    "include": "./dark_plus.json",
+}

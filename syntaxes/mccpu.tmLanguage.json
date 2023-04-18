@@ -1,0 +1,148 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "mccpu",
+	"patterns": [
+		{
+			"include": "#expression"
+		}
+	],
+	"repository": {
+		"expression": {
+			"patterns": [
+				{
+					"include": "#comments"
+				},
+				{
+					"include": "#types"
+				},
+				{
+					"include": "#methods"
+				},
+				{
+					"include": "#compiler-instructions"
+				},
+				{
+					"include": "#args"
+				},
+				{
+					"include": "#literals"
+				}
+			]
+		},
+		"methods": {
+			"patterns": [
+				{
+					"name": "entity.name.function",
+					"match": "(?<=\\s|^)add(?=\\s|$)"
+				},
+				{
+					"name": "entity.name.function",
+					"match": "(?<=\\s|^)sub(?=\\s|$)"
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"begin": "//",
+					"end": "\\n",
+					"name": "comment.line"
+				}
+			]
+		},
+		"compiler-instructions": {
+			"patterns": [
+				{
+					"begin": "<",
+					"end": ">",
+					"name": "constant.import"
+				},
+				{
+					"match": "(?<=#comment)(.*)",
+					"name": "comment.line.italic"
+				},
+				{
+					"match": "#macro",
+					"name": "keyword.control"
+				},
+				{
+					"match": "#endmacro",
+					"name": "keyword.control"
+				},
+				{
+					"match": "#comment",
+					"name": "comment.line"
+				},
+				{
+					"match": "#memorylayout",
+					"name": "keyword.control"
+				},
+				{
+					"match": "#endmemorylayout",
+					"name": "keyword.control"
+				},
+				{
+					"match": "#includemacrofile",
+					"name": "keyword.control"
+				},
+				{
+					"match": "auto|static|incremental|explicit",
+					"name": "keyword.control.less"
+				}
+			]
+		},
+		"types": {
+			"patterns": [
+				{
+					"match": "%register",
+					"name": "variable.parameter"
+				},
+				{
+					"match": "%number",
+					"name": "variable.parameter"
+				},
+				{
+					"match": "%address",
+					"name": "variable.parameter"
+				},
+				{
+					"match": "%variable",
+					"name": "variable.parameter"
+				},
+				{
+					"match": "%lable",
+					"name": "variable.parameter"
+				}
+			]
+		},
+		"args": {
+			"patterns": [
+				{
+					"match": "%[0-9]{1,}",
+					"name": "variable.parameter"
+				}
+			]
+		},
+		"literals":{
+			"patterns": [
+				{
+					"match": "0x[0-9A-Fa-f]{1,2}",
+					"name": "constant.numeric"
+				},
+				{
+					"match": "[0-9]{1,3}",
+					"name": "constant.numeric"
+				},
+				{
+					"match": "~[0-9a-zA-Z]*",
+					"name": "keyword.operator"
+				},
+				{
+					"match": "[0-9a-zA-Z]*:",
+					"name": "keyword.operator"
+				}
+			]
+		}
+	},
+	"scopeName": "source.mccpu"
+}

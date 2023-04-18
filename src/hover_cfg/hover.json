@@ -1,0 +1,26 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "language": "mccpu",
+    "hover": [
+        {
+            "aliases": [
+                "add"
+            ],
+            "value": [
+                "# add",
+                "> add %register, %register",
+                "> adds %2 to %1 (%1 = %1 + %2)"
+            ]
+        },
+        {
+            "aliases": [
+                "sub"
+            ],
+            "value": [
+                "# sub",
+                "> sub %register, %register",
+                "> subtracts %2 form %1 (%1 = %1 - %2)"
+            ]
+        }
+    ]
+}

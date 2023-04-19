@@ -3,6 +3,7 @@
   "displayName": "MCCPU-Language",
   "description": "Adds basic language support for .mccpu files (my own assembly like language for my minecraft cpu)",
   "version": "0.0.1",
+  "publisher": "FireDragon91245",
   "engines": {
     "vscode": "^1.77.0"
   },

@@ -28,22 +28,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
-const hover_json_1 = __importDefault(require("./hover_cfg/hover.json"));
+const definition_1 = require("./definition");
+const hover_json_1 = __importDefault(require("./hover.json"));
 function activate(context) {
     vscode.window.showInformationMessage('Hello World from test!');
     let disposable = vscode.commands.registerCommand('test.helloWorld', () => {
         vscode.window.showInformationMessage('Hello World from test!');
     });
     context.subscriptions.push(disposable);
-    vscode.languages.registerHoverProvider('mccpu', {
+    context.subscriptions.push(vscode.languages.registerHoverProvider('mccpu', {
         provideHover(document, position, token) {
             const range = document.getWordRangeAtPosition(position);
             const word = document.getText(range);
             const wordLower = word.toLowerCase();
             let value = '';
             hover_json_1.default.hover.forEach(currHover => {
-                if (currHover.aliases.some(alias => alias === wordLower)) {
-                    value = currHover.value.join('\n');
+                if (currHover.regex) {
+                    if (currHover.aliases.some(alias => {
+                        const reg = RegExp(alias);
+                        return reg.test(wordLower);
+                    })) {
+                        value = currHover.value.join('\n');
+                    }
+                }
+                else {
+                    if (currHover.aliases.some(alias => alias === wordLower)) {
+                        value = currHover.value.join('\n');
+                    }
                 }
             });
             if (value === '') {
@@ -52,7 +63,18 @@ function activate(context) {
             const markdown = new vscode.MarkdownString(value, false);
             return new vscode.Hover(markdown);
         },
-    });
+    }));
+    context.subscriptions.push(vscode.languages.registerDefinitionProvider('mccpu', {
+        provideDefinition(document, position, token) {
+            const line = document.lineAt(position.line);
+            const lineLower = line.text.slice(line.firstNonWhitespaceCharacterIndex).toLowerCase();
+            const def = (0, definition_1.findMacroDefinition)(document, position, lineLower);
+            if (def !== null) {
+                return def;
+            }
+            return new vscode.Location(document.uri, position);
+        },
+    }));
 }
 exports.activate = activate;
 // This method is called when your extension is deactivated

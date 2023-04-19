@@ -36,6 +36,14 @@
             "settings": {
                 "foreground": "#d38003",
             }
+        },
+        {
+            "scope": [
+                "constant.language"
+            ],
+            "settings": {
+                "foreground": "#8db478"
+            }
         }
     ],
     "include": "./dark_plus.json",

@@ -1,0 +1,299 @@
+[
+    {
+        "aliases": [
+            "div"
+        ],
+        "value": [
+            "# div",
+            "```mccpu",
+            "  div",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "mult"
+        ],
+        "value": [
+            "# mult",
+            "```mccpu",
+            "  mult",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "inc"
+        ],
+        "value": [
+            "# inc",
+            "```mccpu",
+            "  inc",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "dec"
+        ],
+        "value": [
+            "# dec",
+            "```mccpu",
+            "  dec",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "call"
+        ],
+        "value": [
+            "# call",
+            "```mccpu",
+            "  call",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "ret"
+        ],
+        "value": [
+            "# ret",
+            "```mccpu",
+            "  ret",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "jmp"
+        ],
+        "value": [
+            "# jmp",
+            "```mccpu",
+            "  jmp",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "jmpz"
+        ],
+        "value": [
+            "# jmpz",
+            "```mccpu",
+            "  jmpz",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "jmps"
+        ],
+        "value": [
+            "# jmps",
+            "```mccpu",
+            "  jmps",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "jmpb"
+        ],
+        "value": [
+            "# jmpb",
+            "```mccpu",
+            "  jmpb",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "jmpe"
+        ],
+        "value": [
+            "# jmpe",
+            "```mccpu",
+            "  jmpe",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "cmp"
+        ],
+        "value": [
+            "# cmp",
+            "```mccpu",
+            "  cmp",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "push"
+        ],
+        "value": [
+            "# push",
+            "```mccpu",
+            "  push",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "pop"
+        ],
+        "value": [
+            "# pop",
+            "```mccpu",
+            "  pop",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "cpy"
+        ],
+        "value": [
+            "# cpy",
+            "```mccpu",
+            "  cpy",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "load"
+        ],
+        "value": [
+            "# load",
+            "```mccpu",
+            "  load",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "mcpy"
+        ],
+        "value": [
+            "# mcpy",
+            "```mccpu",
+            "  mcpy",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "mload"
+        ],
+        "value": [
+            "# mload",
+            "```mccpu",
+            "  mload",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "mget"
+        ],
+        "value": [
+            "# mget",
+            "```mccpu",
+            "  mget",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "mset"
+        ],
+        "value": [
+            "# mset",
+            "```mccpu",
+            "  mset",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "and"
+        ],
+        "value": [
+            "# and",
+            "```mccpu",
+            "  and",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "or"
+        ],
+        "value": [
+            "# or",
+            "```mccpu",
+            "  or",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "not"
+        ],
+        "value": [
+            "# not",
+            "```mccpu",
+            "  not",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "shl"
+        ],
+        "value": [
+            "# shl",
+            "```mccpu",
+            "  shl",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "shr"
+        ],
+        "value": [
+            "# shr",
+            "```mccpu",
+            "  shr",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "nop"
+        ],
+        "value": [
+            "# nop",
+            "```mccpu",
+            "  nop",
+            "```"
+        ]
+    },
+    {
+        "aliases": [
+            "halt"
+        ],
+        "value": [
+            "# halt",
+            "```mccpu",
+            "  halt",
+            "```"
+        ]
+    }
+]

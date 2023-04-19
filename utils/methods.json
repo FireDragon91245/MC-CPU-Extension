@@ -1,0 +1,118 @@
+[
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)add(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)sub(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)div(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)mult(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)inc(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)dec(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)call(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)ret(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)jmp(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)jmpz(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)jmps(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)jmpb(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)jmpe(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)cmp(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)push(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)pop(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)cpy(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)load(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)mcpy(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)mload(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)mget(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)mset(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)and(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)or(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)not(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)shl(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)shr(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)nop(?=\\s|$)"
+    },
+    {
+        "name": "entity.name.function",
+        "match": "(?<=\\s|^)halt(?=\\s|$)"
+    }
+]

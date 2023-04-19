@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 
-import hover from './hover_cfg/hover.json';
+import { findMacroDefinition } from './definition';
+
+import hover from './hover.json';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -13,31 +15,59 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(disposable);
 
-	vscode.languages.registerHoverProvider('mccpu', {
-		provideHover(document, position, token) {
-			
-			const range = document.getWordRangeAtPosition(position);
-            const word = document.getText(range);
-			const wordLower = word.toLowerCase();
+	context.subscriptions.push(
+		vscode.languages.registerHoverProvider('mccpu', {
+			provideHover(document, position, token) {
 
-			let value:string = '';
-			hover.hover.forEach(currHover => {
-				if(currHover.aliases.some(alias => alias === wordLower))
-				{
-					value = currHover.value.join('\n');
+				const range = document.getWordRangeAtPosition(position);
+				const word = document.getText(range);
+				const wordLower = word.toLowerCase();
+
+				let value: string = '';
+				hover.hover.forEach(currHover => {
+					if (currHover.regex) {
+						if (currHover.aliases.some(alias => {
+							const reg = RegExp(alias);
+							return reg.test(wordLower);
+						})) {
+							value = currHover.value.join('\n');
+						}
+					}
+					else {
+						if (currHover.aliases.some(alias => alias === wordLower)) {
+							value = currHover.value.join('\n');
+						}
+					}
+				});
+
+				if (value === '') {
+					return;
 				}
-			});
 
-			if(value === '')
-			{
-				return;
-			}
+				const markdown = new vscode.MarkdownString(value, false);
+				return new vscode.Hover(markdown);
+			},
+		})
+	);
 
-			const markdown = new vscode.MarkdownString(value, false);
-			return new vscode.Hover(markdown);
-		},
-	});
+	context.subscriptions.push(
+		vscode.languages.registerDefinitionProvider('mccpu', {
+			provideDefinition(document, position, token) {
+				const line = document.lineAt(position.line);
+				const lineLower = line.text.slice(line.firstNonWhitespaceCharacterIndex).toLowerCase();
+
+				const def = findMacroDefinition(document, position, lineLower);
+
+				if(def !== null)
+				{
+					return def;
+				}
+
+				return new vscode.Location(document.uri, position);
+			},
+		})
+	);
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

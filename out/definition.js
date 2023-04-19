@@ -25,6 +25,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findMacroDefinition = void 0;
 const vscode = __importStar(require("vscode"));
+const fs = __importStar(require("fs"));
+const fsPath = __importStar(require("path"));
+class LinePathCollection {
+    constructor(path, lines) {
+        this.path = path;
+        this.lines = lines;
+    }
+}
+const importReg = /<([a-z|0-9|A-Z|.|_|-]+)>/g;
+const extension = vscode.extensions.getExtension("FireDragon91245.mccpu-language");
 function findMacroDefinition(document, position, lineLower) {
     const macroDefString = macroUsageToDeclatation(lineLower);
     let includeLines = new Array();
@@ -46,6 +56,30 @@ function findMacroDefinition(document, position, lineLower) {
             includeLines.push(currLineLower);
         }
     }
+    let includeFileLines = new Array();
+    includeLines.forEach(line => {
+        importReg.lastIndex = 0;
+        let matches = importReg.exec(line);
+        if (matches !== null) {
+            matches.forEach(match => {
+                includeFileLines = getFileLinesAndIncludes(match, includeFileLines, document);
+            });
+        }
+    });
+    for (let coll of includeFileLines) {
+        let lineNo = 0;
+        for (var line of coll.lines) {
+            const lineLower = line.trim().toLowerCase();
+            if (lineLower.startsWith('#macro')) {
+                if (lineLower.includes(macroDefString)) {
+                    return new vscode.Location(vscode.Uri.file(coll.path), new vscode.Range(lineNo, 0, lineNo, line.length));
+                }
+            }
+            lineNo++;
+        }
+        ;
+    }
+    ;
     return null;
 }
 exports.findMacroDefinition = findMacroDefinition;
@@ -61,5 +95,55 @@ function macroUsageToDeclatation(macroLine) {
         macroLine = macroLine.replace(reg, type);
     });
     return macroLine;
+}
+function readAllLines(path) {
+    return fs.readFileSync(path).toString().split("\n");
+}
+function getFileLinesAndIncludes(path, lineColl, document) {
+    if (extension !== undefined) {
+        const nativeMccpuPath = extension.extensionPath + "/mccpu/" + path + ".mccpu";
+        if (lineColl.some(coll => coll.path === nativeMccpuPath)) {
+            return lineColl;
+        }
+        if (fs.existsSync(nativeMccpuPath)) {
+            const lines = readAllLines(nativeMccpuPath);
+            lineColl.push(new LinePathCollection(nativeMccpuPath, lines));
+            lines.forEach(line => {
+                const currLineLower = line.trim().toLowerCase();
+                if (currLineLower.startsWith("#includemacrofile")) {
+                    importReg.lastIndex = 0;
+                    const matches = importReg.exec(line);
+                    if (matches !== null) {
+                        matches.forEach(match => {
+                            lineColl = getFileLinesAndIncludes(match, lineColl, document);
+                        });
+                    }
+                }
+            });
+            return lineColl;
+        }
+    }
+    const currPath = fsPath.dirname(document.uri.fsPath) + "/" + path;
+    if (lineColl.some(coll => coll.path == currPath)) {
+        return lineColl;
+    }
+    if (fs.existsSync(currPath)) {
+        const lines = readAllLines(currPath);
+        lineColl.push(new LinePathCollection(currPath, lines));
+        lines.forEach(line => {
+            const currLineLower = line.trim().toLocaleLowerCase();
+            if (currLineLower.startsWith("#includemacrofile")) {
+                importReg.lastIndex = 0;
+                const matches = importReg.exec(line);
+                if (matches !== null) {
+                    matches.forEach(match => {
+                        lineColl = getFileLinesAndIncludes(match, lineColl, document);
+                    });
+                }
+            }
+        });
+        return lineColl;
+    }
+    return lineColl;
 }
 //# sourceMappingURL=definition.js.map

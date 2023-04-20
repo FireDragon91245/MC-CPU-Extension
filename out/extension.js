@@ -29,13 +29,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deactivate = exports.activate = void 0;
 const vscode = __importStar(require("vscode"));
 const definition_1 = require("./definition");
+const symbols_1 = require("./symbols");
 const hover_json_1 = __importDefault(require("./hover.json"));
 function activate(context) {
-    vscode.window.showInformationMessage('Hello World from test!');
-    let disposable = vscode.commands.registerCommand('test.helloWorld', () => {
-        vscode.window.showInformationMessage('Hello World from test!');
-    });
-    context.subscriptions.push(disposable);
+    //vscode.window.showInformationMessage('Hello World from test!');
+    //
+    //let disposable = vscode.commands.registerCommand('test.helloWorld', () => {
+    //	vscode.window.showInformationMessage('Hello World from test!');
+    //});
+    //context.subscriptions.push(disposable);
     context.subscriptions.push(vscode.languages.registerHoverProvider('mccpu', {
         provideHover(document, position, token) {
             const range = document.getWordRangeAtPosition(position);
@@ -62,7 +64,7 @@ function activate(context) {
             }
             const markdown = new vscode.MarkdownString(value, false);
             return new vscode.Hover(markdown);
-        },
+        }
     }));
     context.subscriptions.push(vscode.languages.registerDefinitionProvider('mccpu', {
         provideDefinition(document, position, token) {
@@ -77,6 +79,16 @@ function activate(context) {
                 return macroDef;
             }
             return new vscode.Location(document.uri, position);
+        }
+    }));
+    context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider('mccpu', {
+        provideDocumentSymbols(document, token) {
+            return (0, symbols_1.getAllSymbolsDocument)(document);
+        }
+    }));
+    context.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider({
+        async provideWorkspaceSymbols(query, token) {
+            return (0, symbols_1.getAllSymbolsWorkspaceQuerryed)(query);
         },
     }));
 }

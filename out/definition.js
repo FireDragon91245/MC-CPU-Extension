@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findIncludeDefinition = exports.findMacroDefinition = void 0;
+exports.findIncludeDefinition = exports.readAllLines = exports.matchAll = exports.findMacroDefinition = exports.RegexResult = void 0;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const fsPath = __importStar(require("path"));
@@ -33,6 +33,7 @@ class RegexResult {
         this.groupMatches = new Array();
     }
 }
+exports.RegexResult = RegexResult;
 class LinePathCollection {
     constructor(path, lines) {
         this.path = path;
@@ -97,6 +98,7 @@ function matchAll(reg, str) {
     }
     return res;
 }
+exports.matchAll = matchAll;
 const regexTypeMap = new Map([
     [/(&r[0-9]{1,3})/g, "%register"],
     [/(0x[0-9A-Fa-f]{1,2}|[0-9]{1,3})/g, "%number"],
@@ -113,6 +115,7 @@ function macroUsageToDeclatation(macroLine) {
 function readAllLines(path) {
     return fs.readFileSync(path).toString().split("\n");
 }
+exports.readAllLines = readAllLines;
 function getFileLinesAndIncludes(path, lineColl, document) {
     if (extension !== undefined) {
         const nativeMccpuPath = extension.extensionPath + "/mccpu/" + path + ".mccpu";

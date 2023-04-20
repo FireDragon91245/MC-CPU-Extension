@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as fsPath from 'path';
 
-class RegexResult {
+export class RegexResult {
     constructor() {
         this.matches = new Array<string>();
         this.groupMatches = new Array<string>();
@@ -70,7 +70,7 @@ export function findMacroDefinition(document: vscode.TextDocument, position: vsc
     return null;
 }
 
-function matchAll(reg: RegExp, str: string): RegexResult {
+export function matchAll(reg: RegExp, str: string): RegexResult {
     let res = new RegexResult();
     reg.lastIndex = 0;
     const matches = str.matchAll(reg);
@@ -100,7 +100,7 @@ function macroUsageToDeclatation(macroLine: string): string {
     return macroLine;
 }
 
-function readAllLines(path: string): Array<string> {
+export function readAllLines(path: string): Array<string> {
     return fs.readFileSync(path).toString().split("\n");
 }
 

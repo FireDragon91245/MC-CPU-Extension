@@ -1,19 +1,20 @@
 import * as vscode from 'vscode';
 
 import { findMacroDefinition, findIncludeDefinition } from './definition';
+import { getAllSymbolsDocument, getAllSymbolsWorkspaceQuerryed } from './symbols';
 
 import hover from './hover.json';
 
 export function activate(context: vscode.ExtensionContext) {
 
 
-	vscode.window.showInformationMessage('Hello World from test!');
+	//vscode.window.showInformationMessage('Hello World from test!');
+//
+	//let disposable = vscode.commands.registerCommand('test.helloWorld', () => {
+	//	vscode.window.showInformationMessage('Hello World from test!');
+	//});
 
-	let disposable = vscode.commands.registerCommand('test.helloWorld', () => {
-		vscode.window.showInformationMessage('Hello World from test!');
-	});
-
-	context.subscriptions.push(disposable);
+	//context.subscriptions.push(disposable);
 
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider('mccpu', {
@@ -46,7 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 				const markdown = new vscode.MarkdownString(value, false);
 				return new vscode.Hover(markdown);
-			},
+			}
 		})
 	);
 
@@ -71,6 +72,22 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 
 				return new vscode.Location(document.uri, position);
+			}
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.languages.registerDocumentSymbolProvider('mccpu', {
+			provideDocumentSymbols(document, token) {
+				return getAllSymbolsDocument(document);
+			}
+		})
+	);
+
+	context.subscriptions.push(
+		vscode.languages.registerWorkspaceSymbolProvider({
+			async provideWorkspaceSymbols(query, token) {
+				return getAllSymbolsWorkspaceQuerryed(query);
 			},
 		})
 	);

@@ -68,9 +68,13 @@ function activate(context) {
         provideDefinition(document, position, token) {
             const line = document.lineAt(position.line);
             const lineLower = line.text.slice(line.firstNonWhitespaceCharacterIndex).toLowerCase();
-            const def = (0, definition_1.findMacroDefinition)(document, position, lineLower);
-            if (def !== null) {
-                return def;
+            const includeDef = (0, definition_1.findIncludeDefinition)(document, position, lineLower);
+            if (includeDef !== null) {
+                return includeDef;
+            }
+            const macroDef = (0, definition_1.findMacroDefinition)(document, position, lineLower);
+            if (macroDef !== null) {
+                return macroDef;
             }
             return new vscode.Location(document.uri, position);
         },

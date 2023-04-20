@@ -2,6 +2,16 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as fsPath from 'path';
 
+class RegexResult {
+    constructor() {
+        this.matches = new Array<string>();
+        this.groupMatches = new Array<string>();
+    }
+
+    public matches: Array<string>;
+    public groupMatches: Array<string>;
+}
+
 class LinePathCollection {
     constructor(path: string, lines: Array<string>) {
         this.path = path;
@@ -20,9 +30,6 @@ export function findMacroDefinition(document: vscode.TextDocument, position: vsc
     const macroDefString = macroUsageToDeclatation(lineLower);
     let includeLines = new Array() as string[];
     for (var i = 0; i < document.lineCount; i++) {
-        if (i === position.line) {
-            continue;
-        }
         const currLine = document.lineAt(i);
         if (currLine.isEmptyOrWhitespace) {
             continue;
@@ -41,13 +48,10 @@ export function findMacroDefinition(document: vscode.TextDocument, position: vsc
     let includeFileLines = new Array<LinePathCollection>();
 
     includeLines.forEach(line => {
-        importReg.lastIndex = 0;
-        let matches = importReg.exec(line);
-        if (matches !== null) {
-            matches.forEach(match => {
-                includeFileLines = getFileLinesAndIncludes(match, includeFileLines, document);
-            });
-        }
+        const matches = matchAll(importReg, line);
+        matches.groupMatches.forEach(match => {
+            includeFileLines = getFileLinesAndIncludes(match, includeFileLines, document);
+        });
     });
 
     for (let coll of includeFileLines) {
@@ -64,6 +68,21 @@ export function findMacroDefinition(document: vscode.TextDocument, position: vsc
     };
 
     return null;
+}
+
+function matchAll(reg: RegExp, str: string): RegexResult {
+    let res = new RegexResult();
+    reg.lastIndex = 0;
+    const matches = str.matchAll(reg);
+    for (const match of matches) {
+        res.matches.push(match[0]);
+        if (match.length > 1) {
+            match.slice(1).forEach(m => {
+                res.groupMatches.push(m);
+            });
+        }
+    }
+    return res;
 }
 
 const regexTypeMap = new Map<RegExp, string>([
@@ -88,33 +107,28 @@ function readAllLines(path: string): Array<string> {
 function getFileLinesAndIncludes(path: string, lineColl: Array<LinePathCollection>, document: vscode.TextDocument): Array<LinePathCollection> {
     if (extension !== undefined) {
         const nativeMccpuPath = extension.extensionPath + "/mccpu/" + path + ".mccpu";
-        if(lineColl.some(coll => coll.path === nativeMccpuPath))
-        {
+        if (lineColl.some(coll => coll.path === nativeMccpuPath)) {
             return lineColl;
         }
         if (fs.existsSync(nativeMccpuPath)) {
             const lines = readAllLines(nativeMccpuPath);
 
             lineColl.push(new LinePathCollection(nativeMccpuPath, lines));
-            
+
             lines.forEach(line => {
                 const currLineLower = line.trim().toLowerCase();
                 if (currLineLower.startsWith("#includemacrofile")) {
-                    importReg.lastIndex = 0;
-                    const matches = importReg.exec(line);
-                    if (matches !== null) {
-                        matches.forEach(match => {
-                            lineColl = getFileLinesAndIncludes(match, lineColl, document);
-                        });
-                    }
+                    const matches = matchAll(importReg, line);
+                    matches.groupMatches.forEach(match => {
+                        lineColl = getFileLinesAndIncludes(match, lineColl, document);
+                    });
                 }
             });
             return lineColl;
         }
     }
     const currPath = fsPath.dirname(document.uri.fsPath) + "/" + path;
-    if(lineColl.some(coll => coll.path == currPath))
-    {
+    if (lineColl.some(coll => coll.path === currPath)) {
         return lineColl;
     }
     if (fs.existsSync(currPath)) {
@@ -125,16 +139,49 @@ function getFileLinesAndIncludes(path: string, lineColl: Array<LinePathCollectio
         lines.forEach(line => {
             const currLineLower = line.trim().toLocaleLowerCase();
             if (currLineLower.startsWith("#includemacrofile")) {
-                importReg.lastIndex = 0;
-                const matches = importReg.exec(line);
-                if (matches !== null) {
-                    matches.forEach(match => {
-                        lineColl = getFileLinesAndIncludes(match, lineColl, document);
-                    });
-                }
+                const matches = matchAll(importReg, line);
+                matches.groupMatches.forEach(match => {
+                    lineColl = getFileLinesAndIncludes(match, lineColl, document);
+                });
             }
         });
         return lineColl;
     }
     return lineColl;
+}
+
+export function findIncludeDefinition(document: vscode.TextDocument, position: vscode.Position, lineLower: string): vscode.Definition | null {
+    if (!lineLower.startsWith("#includemacrofile")) {
+        return null;
+    }
+
+    const matches = matchAll(importReg, lineLower);
+
+    let defs = new Array<vscode.Location>();
+
+    if (extension !== undefined) {
+        matches.groupMatches.forEach(match => {
+            const nativeMccpuPath = extension.extensionPath + "/mccpu/" + match + ".mccpu";
+            if (fs.existsSync(nativeMccpuPath)) {
+                defs.push(new vscode.Location(vscode.Uri.file(nativeMccpuPath), new vscode.Range(0, 0, 0, 0)));
+            }
+        });
+    }
+
+    matches.groupMatches.forEach(match => {
+        const currPath = fsPath.dirname(document.uri.fsPath) + "/" + match;
+        if (fs.existsSync(currPath)) {
+            defs.push(new vscode.Location(vscode.Uri.file(currPath), new vscode.Range(0, 0, 0, 0)));
+        }
+    });
+
+    if (defs.length === 0) {
+        return null;
+    }
+    else if (defs.length === 1) {
+        return defs[0];
+    }
+    else {
+        return defs;
+    }
 }

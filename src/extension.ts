@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { findMacroDefinition } from './definition';
+import { findMacroDefinition, findIncludeDefinition } from './definition';
 
 import hover from './hover.json';
 
@@ -56,11 +56,18 @@ export function activate(context: vscode.ExtensionContext) {
 				const line = document.lineAt(position.line);
 				const lineLower = line.text.slice(line.firstNonWhitespaceCharacterIndex).toLowerCase();
 
-				const def = findMacroDefinition(document, position, lineLower);
+				const includeDef = findIncludeDefinition(document, position, lineLower);
 
-				if(def !== null)
+				if(includeDef !== null)
 				{
-					return def;
+					return includeDef;
+				}
+
+				const macroDef = findMacroDefinition(document, position, lineLower);
+
+				if(macroDef !== null)
+				{
+					return macroDef;
 				}
 
 				return new vscode.Location(document.uri, position);

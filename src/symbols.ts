@@ -8,38 +8,9 @@ class DocumentContent {
     constructor(public uri: vscode.Uri, public lines: string[]) { }
 }
 
-export function getAllSymbolsDocument(document: vscode.TextDocument): vscode.SymbolInformation[] {
-    let symbols = new Array<vscode.SymbolInformation>();
-    var inMemoryLayoutClause: boolean = false;
-    for (var i = 0; i < document.lineCount; i++) {
-        const currLine = document.lineAt(i);
-        if (currLine.isEmptyOrWhitespace) {
-            continue;
-        }
-        const lineLower = currLine.text.slice(currLine.firstNonWhitespaceCharacterIndex);
-
-        if (lineLower.startsWith("#endmemorylayout")) {
-            inMemoryLayoutClause = false;
-        }
-
-        if (inMemoryLayoutClause) {
-            symbols.push(
-                new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Variable, fsPath.parse(document.uri.fsPath).base, new vscode.Location(document.uri, currLine.range))
-            );
-        }
-
-        if (lineLower.startsWith("#macro")) {
-            symbols.push(
-                new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, fsPath.parse(document.uri.fsPath).base, new vscode.Location(document.uri, currLine.range))
-            );
-        }
-
-        if (lineLower.startsWith("#memorylayout")) {
-            inMemoryLayoutClause = true;
-        }
-    }
-
-    return symbols;
+export async function getAllSymbolsDocument(document: vscode.TextDocument): Promise<vscode.SymbolInformation[]> {
+    let documents = new Array<DocumentContent>(new DocumentContent(document.uri, document.getText().split(/\r?\n/)));
+    return getSymbolsFromDocCollection(documents);
 }
 
 export async function getAllSymbolsWorkspaceQueried(query: string): Promise<vscode.SymbolInformation[]> {
@@ -86,7 +57,7 @@ export async function getAllSymbolsWorkspace(): Promise<vscode.SymbolInformation
         return new Array<vscode.SymbolInformation>();
     }
     let documentContents = await getDocumentContents();
-    documentContents = await loadIncludedFilesNativOnly(documentContents);
+    documentContents = await loadIncludedFilesNativOnly(documentContents); // fine to use this here because "documentContents" includes all documents that can import std lib macros
     return getSymbolsFromDocCollection(documentContents);
 }
 
@@ -108,11 +79,30 @@ function isNullOrEmpty(str: string | undefined | null): boolean {
     return !str || str.trim().length === 0;
 }
 
+/*
+WARNING: this function only realy finds all std lib inclusions if you pass all documents that include std lib inclusion
+
+that means the function will not find the #includemacrofile <stdinstruction> in this example
+
+- programm.mccpu
+    #includemacrofile <test.mccpu>
+    testmacro &r1
+
+- test.mccpu
+    #includemacrofile <stdinstructions>                 <---- this will not be found by this function if only programm.mccpu is provided
+
+    #macro testmacro %register
+    not %1
+    #endmacro
+*/
 async function loadIncludedFilesNativOnly(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
     if (extension === undefined) {
         return documentContents;
     }
-    for (const documentContent of documentContents) {
+    let i = 0;
+    while (i < documentContents.length) {
+        const documentContent = documentContents[i];
+        i++;
         for (const line of documentContent.lines) {
             const trimmedLine = line.trim().toLowerCase();
             if (trimmedLine.startsWith("#includemacrofile")) {
@@ -130,19 +120,32 @@ async function loadIncludedFilesNativOnly(documentContents: DocumentContent[]): 
     return documentContents;
 }
 
-async function loadIncludedFilesWokspaceOnly(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
-    for (const documentContent of documentContents) {
+/*
+other then at the "loadIncludedFilesNativOnly" function this will recusivly scann everything
+*/
+async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
+    let i = 0;
+    while (i < documentContents.length) {
+        const documentContent = documentContents[i];
+        i++;
         for (const line of documentContent.lines) {
             const trimmedLine = line.trim().toLowerCase();
             if (trimmedLine.startsWith("#includemacrofile")) {
                 const matches = matchAll(importReg, trimmedLine);
                 for (const match of matches.groupMatches) {
-                    const fullPath = fsPath.join(fsPath.dirname(documentContent.uri.fsPath), match);
+                    const fullPathWorkspace = fsPath.join(fsPath.dirname(documentContent.uri.fsPath), match);
                     try {
-                        const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPath));
+                        const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPathWorkspace));
                         documentContents.push(new DocumentContent(doc.uri, doc.getText().split(/\r?\n/)));
                     }
                     catch (error) { }
+                    if (extension !== undefined) {
+                        const fullPathStdLib = fsPath.join(extension.extensionPath, "mccpu", match + ".mccpu");
+                        if (fs.existsSync(fullPathStdLib)) {
+                            const content = fs.readFileSync(fullPathStdLib).toString();
+                            documentContents.push(new DocumentContent(vscode.Uri.file(fullPathStdLib), content.split(/\r?\n/)));
+                        }
+                    }
                 }
             }
         }

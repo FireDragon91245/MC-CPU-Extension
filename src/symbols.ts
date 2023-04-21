@@ -4,6 +4,11 @@ import * as fsPath from 'path';
 import { log } from 'console';
 import * as fs from 'fs';
 
+
+class DocumentContent {
+    constructor(public uri: vscode.Uri, public lines: string[]) { }
+}
+
 export function getAllSymbolsDocument(document: vscode.TextDocument): vscode.SymbolInformation[] {
     let symbols = new Array<vscode.SymbolInformation>();
     var inMemoryLayoutClause: boolean = false;
@@ -38,48 +43,63 @@ export function getAllSymbolsDocument(document: vscode.TextDocument): vscode.Sym
     return symbols;
 }
 
-export async function getAllSymbolsWorkspaceQuerryed(query: string): Promise<vscode.SymbolInformation[]> {
-    return getAllSymbolsWorkspace().then(symbols => {
-        const queryLower = query.trim().toLowerCase();
-        let queryedSymbols = new Array<vscode.SymbolInformation>();
-        for (const sym of symbols) {
-            if (sym.name.includes(queryLower) || sym.containerName.includes(queryLower)) {
-                queryedSymbols.push(sym);
-            }
-        }
-        return queryedSymbols;
-    });
+export async function getAllSymbolsWorkspaceQueried(query: string): Promise<vscode.SymbolInformation[]> {
+    const queryLower = query.trim().toLowerCase();
+    const symbols = await getAllSymbolsWorkspace();
+    const queriedSymbols = symbols.filter(
+        (sym) =>
+            sym.name.toLowerCase().includes(queryLower) || sym.containerName.toLowerCase().includes(queryLower)
+    );
+    return queriedSymbols;
 }
 
 export async function getAllSymbolsWorkspace(): Promise<vscode.SymbolInformation[]> {
     if (vscode.workspace.workspaceFolders === undefined) {
         return new Array<vscode.SymbolInformation>();
     }
-    return vscode.workspace.findFiles('**/*.mccpu', null, 1_000_000).then(fileUris => {
-        let symbols = new Array<vscode.SymbolInformation>();
-        for (const fileUri of fileUris) {
-            var fileLine = 0;
-            var inMemoryLayoutClause = false;
-            const fileLines = readAllLines(fileUri.fsPath);
-            for (const line of fileLines) {
-                const lineLower = line.trim().toLowerCase();
-
-                if (lineLower.startsWith("#endmemorylayout")) {
-                    inMemoryLayoutClause = false;
-                }
-                if (inMemoryLayoutClause) {
-                    symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Variable, fsPath.parse(fileUri.fsPath).base, new vscode.Location(fileUri, new vscode.Range(fileLine, 0, fileLine, line.length))));
-                }
-                if (lineLower.startsWith("#macro")) {
-
-                    symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, fsPath.parse(fileUri.fsPath).base, new vscode.Location(fileUri, new vscode.Range(fileLine, 0, fileLine, line.length))));
-                }
-                if (lineLower.startsWith("#memorylayout")) {
-                    inMemoryLayoutClause = true;
-                }
-                fileLine++;
+    const documentContents = await getDocumentContents();
+    let symbols = new Array<vscode.SymbolInformation>();
+    for (const documentContent of documentContents) {
+        var lineNo = 0;
+        var inMemoryLayoutClause = false;
+        for (const line of documentContent.lines) {
+            const lineLower = line.trim().toLowerCase();
+            if(isNullOrEmpty(lineLower))
+            {
+                continue;
             }
+            if (lineLower.startsWith("#endmemorylayout")) {
+                inMemoryLayoutClause = false;
+            }
+            else if (inMemoryLayoutClause) {
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Variable, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+            }
+            else if (lineLower.startsWith("#memorylayout")) {
+                inMemoryLayoutClause = true;
+            }
+            else if (lineLower.startsWith("#macro")) {
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+            }
+            lineNo++;
         }
-        return symbols;
-    });
+    }
+    return symbols;
+}
+
+async function getDocumentContents(): Promise<DocumentContent[]> {
+    const documentUris = await vscode.workspace.findFiles('**/*.mccpu', null, 1000);
+
+    const documentContents = await Promise.all(
+        documentUris.map(async (documentUri) => {
+            const document = await vscode.workspace.openTextDocument(documentUri);
+            const lines = document.getText().split('\n');
+            return new DocumentContent(documentUri, lines);
+        })
+    );
+
+    return documentContents;
+}
+
+function isNullOrEmpty(str: string | undefined | null): boolean {
+    return !str || str.trim().length === 0;
 }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 import { findMacroDefinition, findIncludeDefinition } from './definition';
-import { getAllSymbolsDocument, getAllSymbolsWorkspaceQuerryed } from './symbols';
+import { getAllSymbolsDocument, getAllSymbolsWorkspaceQueried } from './symbols';
 
 import hover from './hover.json';
 
@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.languages.registerWorkspaceSymbolProvider({
 			async provideWorkspaceSymbols(query, token) {
-				return getAllSymbolsWorkspaceQuerryed(query);
+				return getAllSymbolsWorkspaceQueried(query);
 			},
 		})
 	);

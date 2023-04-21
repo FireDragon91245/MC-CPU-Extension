@@ -88,7 +88,7 @@ function activate(context) {
     }));
     context.subscriptions.push(vscode.languages.registerWorkspaceSymbolProvider({
         async provideWorkspaceSymbols(query, token) {
-            return (0, symbols_1.getAllSymbolsWorkspaceQuerryed)(query);
+            return (0, symbols_1.getAllSymbolsWorkspaceQueried)(query);
         },
     }));
 }

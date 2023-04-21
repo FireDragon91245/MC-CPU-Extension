@@ -23,9 +23,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSymbolsWorkspace = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = void 0;
+exports.loadIncludedFiles = exports.getAllSymbolsWorkspace = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = void 0;
 const vscode = __importStar(require("vscode"));
+const definition_1 = require("./definition");
 const fsPath = __importStar(require("path"));
+const fs = __importStar(require("fs"));
 class DocumentContent {
     constructor(uri, lines) {
         this.uri = uri;
@@ -68,7 +70,8 @@ async function getAllSymbolsWorkspace() {
     if (vscode.workspace.workspaceFolders === undefined) {
         return new Array();
     }
-    const documentContents = await getDocumentContents();
+    let documentContents = await getDocumentContents();
+    documentContents = await loadIncludedFiles(documentContents);
     let symbols = new Array();
     for (const documentContent of documentContents) {
         var lineNo = 0;
@@ -76,19 +79,20 @@ async function getAllSymbolsWorkspace() {
         for (const line of documentContent.lines) {
             const lineLower = line.trim().toLowerCase();
             if (isNullOrEmpty(lineLower)) {
+                lineNo++;
                 continue;
             }
             if (lineLower.startsWith("#endmemorylayout")) {
                 inMemoryLayoutClause = false;
             }
             else if (inMemoryLayoutClause) {
-                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Variable, getFileName(documentContent.uri), new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Variable, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
             }
             else if (lineLower.startsWith("#memorylayout")) {
                 inMemoryLayoutClause = true;
             }
             else if (lineLower.startsWith("#macro")) {
-                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, getFileName(documentContent.uri), new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
             }
             lineNo++;
         }
@@ -108,10 +112,26 @@ async function getDocumentContents() {
 function isNullOrEmpty(str) {
     return !str || str.trim().length === 0;
 }
-function getFileName(uri) {
-    const path = uri.fsPath;
-    const lastSlashIndex = path.lastIndexOf("/");
-    const fileName = path.slice(lastSlashIndex + 1);
-    return fileName;
+async function loadIncludedFiles(documentContents) {
+    if (definition_1.extension === undefined) {
+        return documentContents;
+    }
+    for (const documentContent of documentContents) {
+        for (const line of documentContent.lines) {
+            const trimmedLine = line.trim().toLowerCase();
+            if (trimmedLine.startsWith("#includemacrofile")) {
+                const matches = (0, definition_1.matchAll)(definition_1.importReg, trimmedLine);
+                for (const match of matches.groupMatches) {
+                    const fullPath = fsPath.join(definition_1.extension.extensionPath, "mccpu", match + ".mccpu");
+                    if (fs.existsSync(fullPath)) {
+                        const content = fs.readFileSync(fullPath).toString();
+                        documentContents.push(new DocumentContent(vscode.Uri.file(fullPath), content.split(/\r?\n/)));
+                    }
+                }
+            }
+        }
+    }
+    return documentContents;
 }
+exports.loadIncludedFiles = loadIncludedFiles;
 //# sourceMappingURL=symbols.js.map

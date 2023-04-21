@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { matchAll, RegexResult, readAllLines } from './definition';
+import { matchAll, importReg, extension } from './definition';
 import * as fsPath from 'path';
-import { log } from 'console';
 import * as fs from 'fs';
 
 
@@ -53,19 +52,15 @@ export async function getAllSymbolsWorkspaceQueried(query: string): Promise<vsco
     return queriedSymbols;
 }
 
-export async function getAllSymbolsWorkspace(): Promise<vscode.SymbolInformation[]> {
-    if (vscode.workspace.workspaceFolders === undefined) {
-        return new Array<vscode.SymbolInformation>();
-    }
-    const documentContents = await getDocumentContents();
+function getSymbolsFromDocCollection(documents: DocumentContent[]): vscode.SymbolInformation[] {
     let symbols = new Array<vscode.SymbolInformation>();
-    for (const documentContent of documentContents) {
+    for (const documentContent of documents) {
         var lineNo = 0;
         var inMemoryLayoutClause = false;
         for (const line of documentContent.lines) {
             const lineLower = line.trim().toLowerCase();
-            if(isNullOrEmpty(lineLower))
-            {
+            if (isNullOrEmpty(lineLower)) {
+                lineNo++;
                 continue;
             }
             if (lineLower.startsWith("#endmemorylayout")) {
@@ -86,6 +81,15 @@ export async function getAllSymbolsWorkspace(): Promise<vscode.SymbolInformation
     return symbols;
 }
 
+export async function getAllSymbolsWorkspace(): Promise<vscode.SymbolInformation[]> {
+    if (vscode.workspace.workspaceFolders === undefined) {
+        return new Array<vscode.SymbolInformation>();
+    }
+    let documentContents = await getDocumentContents();
+    documentContents = await loadIncludedFilesNativOnly(documentContents);
+    return getSymbolsFromDocCollection(documentContents);
+}
+
 async function getDocumentContents(): Promise<DocumentContent[]> {
     const documentUris = await vscode.workspace.findFiles('**/*.mccpu', null, 1000);
 
@@ -102,4 +106,46 @@ async function getDocumentContents(): Promise<DocumentContent[]> {
 
 function isNullOrEmpty(str: string | undefined | null): boolean {
     return !str || str.trim().length === 0;
+}
+
+async function loadIncludedFilesNativOnly(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
+    if (extension === undefined) {
+        return documentContents;
+    }
+    for (const documentContent of documentContents) {
+        for (const line of documentContent.lines) {
+            const trimmedLine = line.trim().toLowerCase();
+            if (trimmedLine.startsWith("#includemacrofile")) {
+                const matches = matchAll(importReg, trimmedLine);
+                for (const match of matches.groupMatches) {
+                    const fullPath = fsPath.join(extension.extensionPath, "mccpu", match + ".mccpu");
+                    if (fs.existsSync(fullPath)) {
+                        const content = fs.readFileSync(fullPath).toString();
+                        documentContents.push(new DocumentContent(vscode.Uri.file(fullPath), content.split(/\r?\n/)));
+                    }
+                }
+            }
+        }
+    }
+    return documentContents;
+}
+
+async function loadIncludedFilesWokspaceOnly(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
+    for (const documentContent of documentContents) {
+        for (const line of documentContent.lines) {
+            const trimmedLine = line.trim().toLowerCase();
+            if (trimmedLine.startsWith("#includemacrofile")) {
+                const matches = matchAll(importReg, trimmedLine);
+                for (const match of matches.groupMatches) {
+                    const fullPath = fsPath.join(fsPath.dirname(documentContent.uri.fsPath), match);
+                    try {
+                        const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPath));
+                        documentContents.push(new DocumentContent(doc.uri, doc.getText().split(/\r?\n/)));
+                    }
+                    catch (error) { }
+                }
+            }
+        }
+    }
+    return documentContents;
 }

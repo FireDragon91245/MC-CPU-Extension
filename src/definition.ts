@@ -22,9 +22,9 @@ class LinePathCollection {
     public lines: Array<string>;
 }
 
-const importReg = /<([a-z|0-9|A-Z|.|_|-]+)>/g;
+export const importReg = /<([a-z|0-9|A-Z|.|_|-]+)>/g;
 
-const extension = vscode.extensions.getExtension("FireDragon91245.mccpu-language");
+export const extension = vscode.extensions.getExtension("FireDragon91245.mccpu-language");
 
 export function findMacroDefinition(document: vscode.TextDocument, position: vscode.Position, lineLower: string): vscode.Definition | null {
     const macroDefString = macroUsageToDeclatation(lineLower);
@@ -185,3 +185,4 @@ export function findIncludeDefinition(document: vscode.TextDocument, position: v
         return defs;
     }
 }
+

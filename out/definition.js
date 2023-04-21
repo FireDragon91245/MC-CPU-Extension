@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findIncludeDefinition = exports.readAllLines = exports.matchAll = exports.findMacroDefinition = exports.RegexResult = void 0;
+exports.findIncludeDefinition = exports.readAllLines = exports.matchAll = exports.findMacroDefinition = exports.extension = exports.importReg = exports.RegexResult = void 0;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const fsPath = __importStar(require("path"));
@@ -40,8 +40,8 @@ class LinePathCollection {
         this.lines = lines;
     }
 }
-const importReg = /<([a-z|0-9|A-Z|.|_|-]+)>/g;
-const extension = vscode.extensions.getExtension("FireDragon91245.mccpu-language");
+exports.importReg = /<([a-z|0-9|A-Z|.|_|-]+)>/g;
+exports.extension = vscode.extensions.getExtension("FireDragon91245.mccpu-language");
 function findMacroDefinition(document, position, lineLower) {
     const macroDefString = macroUsageToDeclatation(lineLower);
     let includeLines = new Array();
@@ -62,7 +62,7 @@ function findMacroDefinition(document, position, lineLower) {
     }
     let includeFileLines = new Array();
     includeLines.forEach(line => {
-        const matches = matchAll(importReg, line);
+        const matches = matchAll(exports.importReg, line);
         matches.groupMatches.forEach(match => {
             includeFileLines = getFileLinesAndIncludes(match, includeFileLines, document);
         });
@@ -117,8 +117,8 @@ function readAllLines(path) {
 }
 exports.readAllLines = readAllLines;
 function getFileLinesAndIncludes(path, lineColl, document) {
-    if (extension !== undefined) {
-        const nativeMccpuPath = extension.extensionPath + "/mccpu/" + path + ".mccpu";
+    if (exports.extension !== undefined) {
+        const nativeMccpuPath = exports.extension.extensionPath + "/mccpu/" + path + ".mccpu";
         if (lineColl.some(coll => coll.path === nativeMccpuPath)) {
             return lineColl;
         }
@@ -128,7 +128,7 @@ function getFileLinesAndIncludes(path, lineColl, document) {
             lines.forEach(line => {
                 const currLineLower = line.trim().toLowerCase();
                 if (currLineLower.startsWith("#includemacrofile")) {
-                    const matches = matchAll(importReg, line);
+                    const matches = matchAll(exports.importReg, line);
                     matches.groupMatches.forEach(match => {
                         lineColl = getFileLinesAndIncludes(match, lineColl, document);
                     });
@@ -147,7 +147,7 @@ function getFileLinesAndIncludes(path, lineColl, document) {
         lines.forEach(line => {
             const currLineLower = line.trim().toLocaleLowerCase();
             if (currLineLower.startsWith("#includemacrofile")) {
-                const matches = matchAll(importReg, line);
+                const matches = matchAll(exports.importReg, line);
                 matches.groupMatches.forEach(match => {
                     lineColl = getFileLinesAndIncludes(match, lineColl, document);
                 });
@@ -161,11 +161,11 @@ function findIncludeDefinition(document, position, lineLower) {
     if (!lineLower.startsWith("#includemacrofile")) {
         return null;
     }
-    const matches = matchAll(importReg, lineLower);
+    const matches = matchAll(exports.importReg, lineLower);
     let defs = new Array();
-    if (extension !== undefined) {
+    if (exports.extension !== undefined) {
         matches.groupMatches.forEach(match => {
-            const nativeMccpuPath = extension.extensionPath + "/mccpu/" + match + ".mccpu";
+            const nativeMccpuPath = exports.extension.extensionPath + "/mccpu/" + match + ".mccpu";
             if (fs.existsSync(nativeMccpuPath)) {
                 defs.push(new vscode.Location(vscode.Uri.file(nativeMccpuPath), new vscode.Range(0, 0, 0, 0)));
             }

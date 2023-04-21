@@ -1,28 +1,4 @@
 {
-    "macro":{
-        "description": "sniped for a simple macro",
-        "prefix": [
-            "#macro",
-            "macro"
-        ],
-        "body": [
-            "#macro $1",
-            "$2",
-            "#endmacro$3"
-        ]
-    },
-    "memorylayout":{
-        "description": "sniped for #memorylayout",
-        "prefix": [
-            "#memorylayout",
-            "memorylayout"
-        ],
-        "body": [
-            "#memorylayout ${1:auto static incremental}",
-            "$2",
-            "#endmemorylayout"
-        ]
-    },
     "add": {
         "description": "add %register, %register",
         "prefix": [

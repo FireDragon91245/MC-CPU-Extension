@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.findIncludeDefinition = exports.readAllLines = exports.matchAll = exports.findMacroDefinition = exports.extension = exports.importReg = exports.RegexResult = void 0;
+exports.findIncludeDefinition = exports.readAllLines = exports.macroUsageToDeclatation = exports.matchAll = exports.findMacroDefinition = exports.extension = exports.importReg = exports.RegexResult = void 0;
 const vscode = __importStar(require("vscode"));
 const fs = __importStar(require("fs"));
 const fsPath = __importStar(require("path"));
@@ -112,6 +112,7 @@ function macroUsageToDeclatation(macroLine) {
     });
     return macroLine;
 }
+exports.macroUsageToDeclatation = macroUsageToDeclatation;
 function readAllLines(path) {
     return fs.readFileSync(path).toString().split("\n");
 }

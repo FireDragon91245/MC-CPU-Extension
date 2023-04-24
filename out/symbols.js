@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSymbolsWorkspace = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = void 0;
+exports.matchSymbol = exports.loadIncludedFilesAll = exports.getAllSymbolsWorkspace = exports.getSymbolsFromDocCollection = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = exports.DocumentContent = void 0;
 const vscode = __importStar(require("vscode"));
 const definition_1 = require("./definition");
 const fsPath = __importStar(require("path"));
@@ -34,6 +34,7 @@ class DocumentContent {
         this.lines = lines;
     }
 }
+exports.DocumentContent = DocumentContent;
 async function getAllSymbolsDocument(document) {
     let documents = new Array(new DocumentContent(document.uri, document.getText().split(/\r?\n/)));
     return getSymbolsFromDocCollection(documents);
@@ -74,6 +75,7 @@ function getSymbolsFromDocCollection(documents) {
     }
     return symbols;
 }
+exports.getSymbolsFromDocCollection = getSymbolsFromDocCollection;
 async function getAllSymbolsWorkspace() {
     if (vscode.workspace.workspaceFolders === undefined) {
         return new Array();
@@ -151,6 +153,9 @@ async function loadIncludedFilesAll(documentContents) {
                     const fullPathWorkspace = fsPath.join(fsPath.dirname(documentContent.uri.fsPath), match);
                     try {
                         const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPathWorkspace));
+                        if (documentContents.some(d => d.uri === doc.uri)) {
+                            continue;
+                        }
                         documentContents.push(new DocumentContent(doc.uri, doc.getText().split(/\r?\n/)));
                     }
                     catch (error) { }
@@ -158,7 +163,11 @@ async function loadIncludedFilesAll(documentContents) {
                         const fullPathStdLib = fsPath.join(definition_1.extension.extensionPath, "mccpu", match + ".mccpu");
                         if (fs.existsSync(fullPathStdLib)) {
                             const content = fs.readFileSync(fullPathStdLib).toString();
-                            documentContents.push(new DocumentContent(vscode.Uri.file(fullPathStdLib), content.split(/\r?\n/)));
+                            const uri = vscode.Uri.file(fullPathStdLib);
+                            if (documentContents.some(doc => doc.uri === uri)) {
+                                continue;
+                            }
+                            documentContents.push(new DocumentContent(uri, content.split(/\r?\n/)));
                         }
                     }
                 }
@@ -167,4 +176,17 @@ async function loadIncludedFilesAll(documentContents) {
     }
     return documentContents;
 }
+exports.loadIncludedFilesAll = loadIncludedFilesAll;
+function matchSymbol(symbol, matchAgainst) {
+    if (symbol.kind !== vscode.SymbolKind.Method) {
+        return false;
+    }
+    const declaration = (0, definition_1.macroUsageToDeclatation)(matchAgainst);
+    const symName = symbol.name.trim().toLocaleLowerCase().slice('#macro'.length).trimStart();
+    if (declaration.trim().toLocaleLowerCase() === symName) {
+        return true;
+    }
+    return false;
+}
+exports.matchSymbol = matchSymbol;
 //# sourceMappingURL=symbols.js.map

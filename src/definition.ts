@@ -93,7 +93,7 @@ const regexTypeMap = new Map<RegExp, string>([
     [/(~[a-zA-Z][a-zA-Z0-9_-]*)/g, "%label"]
 ]);
 
-function macroUsageToDeclatation(macroLine: string): string {
+export function macroUsageToDeclatation(macroLine: string): string {
     regexTypeMap.forEach((type, reg) => {
         macroLine = macroLine.replace(reg, type);
     });

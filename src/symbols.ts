@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { matchAll, importReg, extension } from './definition';
+import { matchAll, importReg, extension, macroUsageToDeclatation } from './definition';
 import * as fsPath from 'path';
 import * as fs from 'fs';
 
 
-class DocumentContent {
+export class DocumentContent {
     constructor(public uri: vscode.Uri, public lines: string[]) { }
 }
 
@@ -23,7 +23,7 @@ export async function getAllSymbolsWorkspaceQueried(query: string): Promise<vsco
     return queriedSymbols;
 }
 
-function getSymbolsFromDocCollection(documents: DocumentContent[]): vscode.SymbolInformation[] {
+export function getSymbolsFromDocCollection(documents: DocumentContent[]): vscode.SymbolInformation[] {
     let symbols = new Array<vscode.SymbolInformation>();
     for (const documentContent of documents) {
         var lineNo = 0;
@@ -123,7 +123,7 @@ async function loadIncludedFilesNativOnly(documentContents: DocumentContent[]): 
 /*
 other then at the "loadIncludedFilesNativOnly" function this will recusivly scann everything
 */
-async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
+export async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promise<DocumentContent[]> {
     let i = 0;
     while (i < documentContents.length) {
         const documentContent = documentContents[i];
@@ -136,6 +136,9 @@ async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promis
                     const fullPathWorkspace = fsPath.join(fsPath.dirname(documentContent.uri.fsPath), match);
                     try {
                         const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(fullPathWorkspace));
+                        if (documentContents.some(d => d.uri === doc.uri)) {
+                            continue;
+                        }
                         documentContents.push(new DocumentContent(doc.uri, doc.getText().split(/\r?\n/)));
                     }
                     catch (error) { }
@@ -143,7 +146,11 @@ async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promis
                         const fullPathStdLib = fsPath.join(extension.extensionPath, "mccpu", match + ".mccpu");
                         if (fs.existsSync(fullPathStdLib)) {
                             const content = fs.readFileSync(fullPathStdLib).toString();
-                            documentContents.push(new DocumentContent(vscode.Uri.file(fullPathStdLib), content.split(/\r?\n/)));
+                            const uri = vscode.Uri.file(fullPathStdLib);
+                            if (documentContents.some(doc => doc.uri === uri)) {
+                                continue;
+                            }
+                            documentContents.push(new DocumentContent(uri, content.split(/\r?\n/)));
                         }
                     }
                 }
@@ -151,4 +158,19 @@ async function loadIncludedFilesAll(documentContents: DocumentContent[]): Promis
         }
     }
     return documentContents;
+}
+
+export function matchSymbol(symbol: vscode.SymbolInformation, matchAgainst: string): boolean
+{
+    if(symbol.kind !== vscode.SymbolKind.Method)
+    {
+        return false;
+    }
+    const declaration = macroUsageToDeclatation(matchAgainst);
+    const symName = symbol.name.trim().toLocaleLowerCase().slice('#macro'.length).trimStart();
+    if(declaration.trim().toLocaleLowerCase() === symName)
+    {
+        return true;
+    }
+    return false;
 }

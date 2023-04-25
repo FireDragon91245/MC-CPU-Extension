@@ -75,7 +75,7 @@ async function getDocumentContents(): Promise<DocumentContent[]> {
     return documentContents;
 }
 
-function isNullOrEmpty(str: string | undefined | null): boolean {
+export function isNullOrEmpty(str: string | undefined | null): boolean {
     return !str || str.trim().length === 0;
 }
 
@@ -167,8 +167,19 @@ export function matchSymbol(symbol: vscode.SymbolInformation, matchAgainst: stri
         return false;
     }
     const declaration = macroUsageToDeclatation(matchAgainst);
-    const symName = symbol.name.trim().toLocaleLowerCase().slice('#macro'.length).trimStart();
-    if(declaration.trim().toLocaleLowerCase() === symName)
+    const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
+    if(symName === declaration.trim().toLocaleLowerCase())
+    {
+        return true;
+    }
+    return false;
+}
+
+export function matchSymbolStr(symbol: string, matchAgainst: string): boolean
+{
+    const declaration = macroUsageToDeclatation(matchAgainst);
+    const symName = symbol.trim().toLocaleLowerCase().replace('#macro', '').trim();
+    if(symName === declaration.trim().toLocaleLowerCase())
     {
         return true;
     }

@@ -31,6 +31,7 @@ const vscode = __importStar(require("vscode"));
 const definition_1 = require("./definition");
 const symbols_1 = require("./symbols");
 const hover_json_1 = __importDefault(require("./hover.json"));
+const diagnostics_1 = require("./diagnostics");
 function activate(context) {
     //vscode.window.showInformationMessage('Hello World from test!');
     //
@@ -92,81 +93,14 @@ function activate(context) {
         },
     }));
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('mccpu');
-    findDiagnostics(diagnosticCollection);
-}
-exports.activate = activate;
-function findDiagnostics(diagnosticCollection) {
     vscode.workspace.onDidChangeTextDocument(async (changeEvent) => {
-        const document = changeEvent.document;
-        const lines = document.getText().split(/\r?\n/);
-        const files = await (0, symbols_1.loadIncludedFilesAll)(new Array(new symbols_1.DocumentContent(document.uri, lines)));
-        const symbols = (0, symbols_1.getSymbolsFromDocCollection)(files);
-        let insideMacro = false;
-        let insideMemorylayout = false;
-        let memoryLayoutLine = 0;
-        let macroLine = 0;
-        let diagnostics = new Array();
-        let lineNo = 0;
-        for (const line of lines) {
-            const lineLower = line.trim().toLowerCase();
-            if (lineLower.startsWith('#endmemorylayout')) {
-                insideMemorylayout = false;
-            }
-            else if (lineLower.startsWith('#endmacro')) {
-                insideMacro = false;
-            }
-            else if (lineLower.startsWith('#macro')) {
-                insideMacro = true;
-                macroLine = lineNo;
-            }
-            else if (lineLower.startsWith('//') || lineLower.startsWith('#includemacrofile')) {
-                lineNo++;
-                continue;
-            }
-            else if (lineLower.startsWith('#memorylayout')) {
-                insideMemorylayout = true;
-                memoryLayoutLine = lineNo;
-                const declarationType = ((lineLower.includes('static') || lineLower.includes('static auto')) ? 1 : 0) + (lineLower.includes('explicit') ? 1 : 0);
-                const balancingType = (lineLower.includes('incremental') ? 1 : 0) + (lineLower.includes('balanced') ? 1 : 0);
-                if (declarationType > 1) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), 'More then 1 Declaration Type on #memorylayout', vscode.DiagnosticSeverity.Warning));
-                }
-                else if (declarationType === 0) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), 'No Declaration Type on #memorylayout', vscode.DiagnosticSeverity.Warning));
-                }
-                if (balancingType > 1) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), 'More then 1 Balancing Type on #memorylayout', vscode.DiagnosticSeverity.Warning));
-                }
-                else if (balancingType === 0) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), 'No Balancing Type on #memorylayout', vscode.DiagnosticSeverity.Warning));
-                }
-            }
-            else if (lineLower.startsWith('#comment')) {
-                if (!insideMacro) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), '#comment outsie of macro', vscode.DiagnosticSeverity.Error));
-                }
-            }
-            else if (insideMemorylayout) {
-                if (!lineLower.match(/[a-z][0-9a-z]*/g)) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), 'Variable declaration cant start with a number and must be alpha numeric', vscode.DiagnosticSeverity.Error));
-                }
-            }
-            else if (insideMacro || !insideMemorylayout) {
-                if (!symbols.some(sym => (0, symbols_1.matchSymbol)(sym, lineLower))) {
-                    diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), `Symbol ${(0, definition_1.macroUsageToDeclatation)(lineLower)} is not defined or included`, vscode.DiagnosticSeverity.Error));
-                }
-            }
-            lineNo++;
-        }
-        if (insideMemorylayout) {
-            diagnostics.push(new vscode.Diagnostic(new vscode.Range(memoryLayoutLine, 0, lines.length, 0), 'Expectet #endmemorylayout ofter #memorylayout', vscode.DiagnosticSeverity.Error));
-        }
-        if (insideMacro) {
-            diagnostics.push(new vscode.Diagnostic(new vscode.Range(macroLine, 0, lines.length, 0), 'Expectet #endmacro ofter #macro', vscode.DiagnosticSeverity.Error));
-        }
-        diagnosticCollection.set(document.uri, diagnostics);
+        (0, diagnostics_1.findDiagnosticsChange)(changeEvent, diagnosticCollection);
+    });
+    vscode.workspace.onDidOpenTextDocument(async (document) => {
+        (0, diagnostics_1.findDiagnostics)(document, diagnosticCollection);
     });
 }
+exports.activate = activate;
 // This method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;

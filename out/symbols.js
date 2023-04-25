@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchSymbol = exports.loadIncludedFilesAll = exports.getAllSymbolsWorkspace = exports.getSymbolsFromDocCollection = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = exports.DocumentContent = void 0;
+exports.matchSymbolStr = exports.matchSymbol = exports.loadIncludedFilesAll = exports.isNullOrEmpty = exports.getAllSymbolsWorkspace = exports.getSymbolsFromDocCollection = exports.getAllSymbolsWorkspaceQueried = exports.getAllSymbolsDocument = exports.DocumentContent = void 0;
 const vscode = __importStar(require("vscode"));
 const definition_1 = require("./definition");
 const fsPath = __importStar(require("path"));
@@ -97,6 +97,7 @@ async function getDocumentContents() {
 function isNullOrEmpty(str) {
     return !str || str.trim().length === 0;
 }
+exports.isNullOrEmpty = isNullOrEmpty;
 /*
 WARNING: this function only realy finds all std lib inclusions if you pass all documents that include std lib inclusion
 
@@ -182,11 +183,20 @@ function matchSymbol(symbol, matchAgainst) {
         return false;
     }
     const declaration = (0, definition_1.macroUsageToDeclatation)(matchAgainst);
-    const symName = symbol.name.trim().toLocaleLowerCase().slice('#macro'.length).trimStart();
-    if (declaration.trim().toLocaleLowerCase() === symName) {
+    const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
+    if (symName === declaration.trim().toLocaleLowerCase()) {
         return true;
     }
     return false;
 }
 exports.matchSymbol = matchSymbol;
+function matchSymbolStr(symbol, matchAgainst) {
+    const declaration = (0, definition_1.macroUsageToDeclatation)(matchAgainst);
+    const symName = symbol.trim().toLocaleLowerCase().replace('#macro', '').trim();
+    if (symName === declaration.trim().toLocaleLowerCase()) {
+        return true;
+    }
+    return false;
+}
+exports.matchSymbolStr = matchSymbolStr;
 //# sourceMappingURL=symbols.js.map

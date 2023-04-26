@@ -2,7 +2,7 @@
   "name": "mccpu-language",
   "displayName": "MCCPU-Language",
   "description": "Adds basic language support for .mccpu files (my own assembly like language for my minecraft cpu)",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "publisher": "FireDragon91245",
   "readme": "./README.md",
   "author": {

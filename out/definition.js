@@ -100,11 +100,11 @@ function matchAll(reg, str) {
 }
 exports.matchAll = matchAll;
 const regexTypeMap = new Map([
+    [/(~[a-zA-Z][a-zA-Z0-9_-]*)/g, "%label"],
     [/(&r[0-9]{1,3})/g, "%register"],
     [/(0x[0-9A-Fa-f]{1,2}|[0-9]{1,3})/g, "%number"],
     [/(\*0x[0-9A-Fa-f]{1,2}|\*[0-9]{1,3})/g, "%address"],
     [/(\*[a-zA-Z][a-zA-Z0-9]*)/g, "%variable"],
-    [/(~[a-zA-Z][a-zA-Z0-9_-]*)/g, "%label"]
 ]);
 function macroUsageToDeclatation(macroLine) {
     regexTypeMap.forEach((type, reg) => {

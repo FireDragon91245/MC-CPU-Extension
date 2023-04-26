@@ -70,6 +70,9 @@ function getSymbolsFromDocCollection(documents) {
             else if (lineLower.startsWith("#macro")) {
                 symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
             }
+            else if (lineLower.match(/[a-z][a-z0-9]*:/g)) {
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Constant, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+            }
             lineNo++;
         }
     }
@@ -179,13 +182,17 @@ async function loadIncludedFilesAll(documentContents) {
 }
 exports.loadIncludedFilesAll = loadIncludedFilesAll;
 function matchSymbol(symbol, matchAgainst) {
-    if (symbol.kind !== vscode.SymbolKind.Method) {
-        return false;
+    if (symbol.kind === vscode.SymbolKind.Method) { // AKA Macro
+        const declaration = (0, definition_1.macroUsageToDeclatation)(matchAgainst);
+        const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
+        if (symName === declaration.trim().toLocaleLowerCase()) {
+            return true;
+        }
     }
-    const declaration = (0, definition_1.macroUsageToDeclatation)(matchAgainst);
-    const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
-    if (symName === declaration.trim().toLocaleLowerCase()) {
-        return true;
+    else if (symbol.kind === vscode.SymbolKind.Constant) { // AKA Lable
+        if (symbol.name.trim().toLocaleLowerCase() === matchAgainst.trim().toLocaleLowerCase()) {
+            return true;
+        }
     }
     return false;
 }

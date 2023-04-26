@@ -36,7 +36,7 @@ var MacroArgTypes;
     MacroArgTypes[MacroArgTypes["variable"] = 3] = "variable";
     MacroArgTypes[MacroArgTypes["label"] = 4] = "label";
 })(MacroArgTypes || (MacroArgTypes = {}));
-const stdInstructions = new Array("add %register, %register", "sub %register, %register", "div %register, %register", "mult %register, %register", "inc %register", "dec %register", "call %number", "ret", "jmp %label", "jmpz %label", "jmps %label", "jmpb %label", "jmpe %label", "cmp %register, %register", "push %register", "pop %register", "cpy %register, %register", "load %register, %number", "mcpy %address, %address", "mcpy %variable, %variable", "mload %address, %number", "mload %variable, %number", "mget %register, %address", "mget %register, %variable", "mset %address, %register", "mset %variable, %register", "and %register, %register", "or %register, %register", "not %register", "shl %register", "shr %register", "nop", "halt");
+const stdInstructions = new Array("add %register, %register", "sub %register, %register", "div %register, %register", "mult %register, %register", "inc %register", "dec %register", "call %number", "call %label", "ret", "jmp %label", "jmpz %label", "jmps %label", "jmpb %label", "jmpe %label", "jmp %number", "jmpz %number", "jmps %number", "jmpb %number", "jmpe %number", "cmp %register, %register", "push %register", "pop %register", "cpy %register, %register", "load %register, %number", "mcpy %address, %address", "mcpy %variable, %variable", "mload %address, %number", "mload %variable, %number", "mget %register, %address", "mget %register, %variable", "mset %address, %register", "mset %variable, %register", "and %register, %register", "or %register, %register", "not %register", "shl %register", "shr %register", "nop", "halt");
 async function findDiagnosticsChange(changeEvent, diagnosticCollection) {
     findDiagnostics(changeEvent.document, diagnosticCollection);
 }
@@ -121,6 +121,21 @@ async function findDiagnostics(document, diagnosticCollection) {
                         return false;
                     })) {
                         diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), `Variable ${gMatch} is not defined`, vscode.DiagnosticSeverity.Error));
+                    }
+                }
+                const lables = (0, definition_2.matchAll)(/~([a-zA-Z][a-zA-Z0-9_-]*)/g, lineLower);
+                for (const gMatch of lables.groupMatches) {
+                    if (!symbols.some(sym => {
+                        if (sym.kind !== vscode.SymbolKind.Constant) // Constant = Lable
+                         {
+                            return false;
+                        }
+                        if (sym.name.trim().toLocaleLowerCase() === gMatch.toLocaleLowerCase().trim() + ':') {
+                            return true;
+                        }
+                        return false;
+                    })) {
+                        diagnostics.push(new vscode.Diagnostic(new vscode.Range(lineNo, 0, lineNo, line.length), `Lable ${gMatch}: is not defined`, vscode.DiagnosticSeverity.Error));
                     }
                 }
                 if (!symbols.some(sym => (0, symbols_1.matchSymbol)(sym, lineLower)) && !stdInstructions.some(sym => (0, symbols_1.matchSymbolStr)(sym, lineLower))) {

@@ -46,6 +46,9 @@ export function getSymbolsFromDocCollection(documents: DocumentContent[]): vscod
             else if (lineLower.startsWith("#macro")) {
                 symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Method, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
             }
+            else if (lineLower.match(/[a-z][a-z0-9]*:/g)) {
+                symbols.push(new vscode.SymbolInformation(lineLower, vscode.SymbolKind.Constant, documentContent.uri.fsPath, new vscode.Location(documentContent.uri, new vscode.Range(lineNo, 0, lineNo, line.length))));
+            }
             lineNo++;
         }
     }
@@ -160,27 +163,27 @@ export async function loadIncludedFilesAll(documentContents: DocumentContent[]):
     return documentContents;
 }
 
-export function matchSymbol(symbol: vscode.SymbolInformation, matchAgainst: string): boolean
-{
-    if(symbol.kind !== vscode.SymbolKind.Method)
-    {
-        return false;
+export function matchSymbol(symbol: vscode.SymbolInformation, matchAgainst: string): boolean {
+    if (symbol.kind === vscode.SymbolKind.Method) { // AKA Macro
+        const declaration = macroUsageToDeclatation(matchAgainst);
+        const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
+        if (symName === declaration.trim().toLocaleLowerCase()) {
+            return true;
+        }
     }
-    const declaration = macroUsageToDeclatation(matchAgainst);
-    const symName = symbol.name.trim().toLocaleLowerCase().replace('#macro', '').trim();
-    if(symName === declaration.trim().toLocaleLowerCase())
-    {
-        return true;
+    else if (symbol.kind === vscode.SymbolKind.Constant) { // AKA Lable
+        if(symbol.name.trim().toLocaleLowerCase() === matchAgainst.trim().toLocaleLowerCase())
+        {
+            return true;
+        }
     }
     return false;
 }
 
-export function matchSymbolStr(symbol: string, matchAgainst: string): boolean
-{
+export function matchSymbolStr(symbol: string, matchAgainst: string): boolean {
     const declaration = macroUsageToDeclatation(matchAgainst);
     const symName = symbol.trim().toLocaleLowerCase().replace('#macro', '').trim();
-    if(symName === declaration.trim().toLocaleLowerCase())
-    {
+    if (symName === declaration.trim().toLocaleLowerCase()) {
         return true;
     }
     return false;

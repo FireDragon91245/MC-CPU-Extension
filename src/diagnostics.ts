@@ -19,12 +19,18 @@ const stdInstructions = new Array<string>(
 	"inc %register",
 	"dec %register",
 	"call %number",
+	"call %label",
 	"ret",
 	"jmp %label",
 	"jmpz %label",
 	"jmps %label",
 	"jmpb %label",
 	"jmpe %label",
+	"jmp %number",
+	"jmpz %number",
+	"jmps %number",
+	"jmpb %number",
+	"jmpe %number",
 	"cmp %register, %register",
 	"push %register",
 	"pop %register",
@@ -180,6 +186,30 @@ export async function findDiagnostics(document: vscode.TextDocument, diagnosticC
 							new vscode.Diagnostic(
 								new vscode.Range(lineNo, 0, lineNo, line.length),
 								`Variable ${gMatch} is not defined`,
+								vscode.DiagnosticSeverity.Error
+							)
+						);
+					}
+				}
+				const lables = matchAll(/~([a-zA-Z][a-zA-Z0-9_-]*)/g, lineLower);
+				for(const gMatch of lables.groupMatches)
+				{
+					if(!symbols.some(sym => {
+						if(sym.kind !== vscode.SymbolKind.Constant) // Constant = Lable
+						{
+							return false;
+						}
+						if(sym.name.trim().toLocaleLowerCase() === gMatch.toLocaleLowerCase().trim() + ':')
+						{
+							return true;
+						}
+						return false;
+					}))
+					{
+						diagnostics.push(
+							new vscode.Diagnostic(
+								new vscode.Range(lineNo, 0, lineNo, line.length),
+								`Lable ${gMatch}: is not defined`,
 								vscode.DiagnosticSeverity.Error
 							)
 						);

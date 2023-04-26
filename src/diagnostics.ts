@@ -252,7 +252,7 @@ export async function findDiagnostics(document: vscode.TextDocument, diagnosticC
 function resolveMacroArgRefs(line: string, types: Array<MacroArgTypes>): string {
 	let lineCpy = line.slice();
 	for (let i = 0; i < types.length; i++) {
-		lineCpy = lineCpy.replace(`%${i + 1}`, `%${MacroArgTypes[types[i]]}`);
+		lineCpy = lineCpy.replace(new RegExp(`%${i + 1}`, 'g'), `%${MacroArgTypes[types[i]]}`);
 	}
 	return lineCpy;
 }

@@ -4,6 +4,15 @@
   "description": "Adds basic language support for .mccpu files (my own assembly like language for my minecraft cpu)",
   "version": "0.0.1",
   "publisher": "FireDragon91245",
+  "readme": "./README.md",
+  "author": {
+    "name": "FireDragon91245",
+    "url": "https://github.com/FireDragon91245"
+  },
+  "repository": {
+    "type": "GitHub",
+    "url": "https://github.com/FireDragon91245/MC-CPU-Extension"
+  },
   "engines": {
     "vscode": "^1.77.0"
   },

@@ -98,6 +98,18 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.workspace.onDidOpenTextDocument(async (document) => {
 		findDiagnostics(document, diagnosticCollection);
 	});
+	vscode.workspace.onDidRenameFiles((renameEvent) => {
+		for(const file of renameEvent.files)
+		{
+			diagnosticCollection.delete(file.oldUri);
+		}
+	});
+	vscode.workspace.onDidDeleteFiles((deleteEvent) => {
+		for(const file of deleteEvent.files)
+		{
+			diagnosticCollection.delete(file);
+		}
+	});
 }
 
 // This method is called when your extension is deactivated
